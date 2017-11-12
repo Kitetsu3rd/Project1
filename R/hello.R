@@ -20,10 +20,18 @@
 #'oneDsample(f = betaPDF, N=100, lb = 0, ub = 1, maxf = 2)
 #' hist(oneDsample(f = betaPDF, N=1000000, lb = 0, ub = 1, maxf = 2))
 #'
-
+#'jointPDF <- function(x,y){
+#'ifelse(0<x & x <1 & 0<y & y<1 & 0<x+y & x+y<1, 24*x*y, 0)}
+#'twoDsample(f = jointPDF, N=100, lbx=0, ubx=1, lby=0, uby=1, maxfj = 6)
 
 oneDsample <- function(f, N, lb, ub, maxf) {
   ones <- runif(N, lb, ub)
   unis <- runif(N, 0, maxf)
   ones[unis < f(ones)]
+}
+
+twoDsample <- function(fj, N, lbx, ubx, lby, uby, maxfj) {
+  twos <- c(runif(N, lbx, ubx),runif(N, lby, uby))
+  unis <- runif(N, 0, maxfj)
+  twos[unis < fj(twos)]
 }
