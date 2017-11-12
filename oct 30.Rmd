@@ -1,0 +1,29 @@
+---
+title: "Oct 30"
+author: "Kuncheng Fan"
+date: "10/30/2017"
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+f = function(x) 1/2/pi *(sin(x) + 1)
+plotData <- mutate(data.frame(x = seq(0, 2* pi, .01)), y = f(x))
+ggplot(plotData, aes(x, y)) + geom_line()
+```
+
+```{r}
+a <- 0
+b <- 2* pi
+C <- 1/pi
+bigSample <- data.frame(x = replicate(20000, {potentialSample <- runif(1, a, b);
+ifelse(runif(1, 0, C) < f(potentialSample), potentialSample, NA)}))
+
+ggplot(bigSample, aes(x)) + geom_density() + stat_function(fun = f, color = "red")
+
+mean(bigSample$x, na.rm = TRUE)  #estimate of E[X] from sample
+mean(bigSample$x < pi, na.rm = TRUE) #Estimate of P(X < pi)
+```
+

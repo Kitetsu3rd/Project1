@@ -1,18 +1,29 @@
-# Hello, world!
-#
-# This is an example function named 'hello' 
-# which prints 'Hello, world!'.
-#
-# You can learn more about package authoring with RStudio at:
-#
-#   http://r-pkgs.had.co.nz/
-#
-# Some useful keyboard shortcuts for package authoring:
-#
-#   Build and Reload Package:  'Cmd + Shift + B'
-#   Check Package:             'Cmd + Shift + E'
-#   Test Package:              'Cmd + Shift + T'
+#' what is the function does: Single variable Rejection Sampling
+#'
+#' This function implements single variabel rejection sampling for rvs with bounded support and which have have bounded pdf.
+#'
+#' The second paragraph will show up somewhere else and should be addition
+#'
+#' @param f the pdf that we are sampling from
+#' @param N the nimber of attempted samples.
+#' @param lb lower bound of support of f
+#' @param ub upper bound of support of f
+#' @param maxf bond of f
+#'
+#' @return A vector containing samples from pdf
+#' @export
+#'
+#' @examples
+#'
+#' betaPDF <- function(x) {
+#' ifelse(0 < x & x < 1, 2*x, 0)}
+#'oneDsample(f = betaPDF, N=100, lb = 0, ub = 1, maxf = 2)
+#' hist(oneDsample(f = betaPDF, N=1000000, lb = 0, ub = 1, maxf = 2))
+#'
 
-hello <- function() {
-  print("Hello, world!")
+
+oneDsample <- function(f, N, lb, ub, maxf) {
+  ones <- runif(N, lb, ub)
+  unis <- runif(N, 0, maxf)
+  ones[unis < f(ones)]
 }
