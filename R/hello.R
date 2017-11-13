@@ -30,8 +30,3 @@ oneDsample <- function(f, N, lb, ub, maxf) {
   ones[unis < f(ones)]
 }
 
-twoDsample <- function(fj, N, lbx, ubx, lby, uby, maxfj) {
-  twos <- c(runif(N, lbx, ubx),runif(N, lby, uby))
-  unis <- runif(N, 0, maxfj)
-  twos[unis < fj(twos)]
-}
