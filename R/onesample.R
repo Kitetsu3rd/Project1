@@ -42,9 +42,9 @@ oneDsample <- function(f, N, lb = -Inf, ub = Inf, mean = 0) {
       return(data.frame(x=ones))
     }
     else {
-      x <- runif(200000,-5000,5000)
-      maxf <- max(f(x))
-      mu=x[which(f(x)==maxf)]
+      op <- optimize(f,c(-100000,100000),maximum = TRUE)
+      maxf <- op$objective
+      mu=op$maximum
       sd = 2/maxf
       C = maxf/dnorm(mu,mu,sd)
       ones = c()
