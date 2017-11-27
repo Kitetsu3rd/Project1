@@ -29,7 +29,8 @@ oneDsample <- function(f, N, lb = -Inf, ub = Inf, mean = 0) {
   }
   else{
     if (lb != -Inf & ub != Inf){
-      maxf <- max(f(runif(100000,lb,ub)))
+      maxf <- optimize(f,c(lb,ub),maximum = TRUE)
+      maxf <- maxf$objective
       ones = c()
       n = 0
       while (n < N) {
@@ -42,9 +43,9 @@ oneDsample <- function(f, N, lb = -Inf, ub = Inf, mean = 0) {
       return(data.frame(x=ones))
     }
     else {
-      op <- optimize(f,c(-100000,100000),maximum = TRUE)
-      maxf <- op$objective
-      mu=op$maximum
+      x <- runif(200000,-5000,5000)
+      maxf <- max(f(x))
+      mu=x[which(f(x)==maxf)]
       sd = 2/maxf
       C = maxf/dnorm(mu,mu,sd)
       ones = c()
