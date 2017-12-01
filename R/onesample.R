@@ -25,7 +25,7 @@
 
 oneDsample <- function(f, N, lb = -Inf, ub = Inf, mean = 0) {
   bdtest <- runif(1000000,-50,50)
-  if (f(-50) == 0 & f(50) == 0){
+  if (f(-50) == 0 & f(50) == 0 & mean(f(bdtest)) > 0){
     lb = min(bdtest[which(f(bdtest)>0)])
     ub = max(bdtest[which(f(bdtest)>0)])
   }
@@ -50,6 +50,9 @@ oneDsample <- function(f, N, lb = -Inf, ub = Inf, mean = 0) {
     else {
       max <- optimize(f,c(-5000,5000),maximum = TRUE)
       maxf <- max$objective          #get the maximum of the given pdf
+      if (maxf == 0){
+        stop("Error: Bound is missing/wrong")
+      }
       mu=max$maximum                 #set the x as the mean of normal distribution where we get the maximum
       sd = 2/maxf                    #based on the pdf of normal distribution, we have standard deviation = 1/sqrt(2*pi)/maxf,
                                      #but we make it a little bit larger because the given pdf might be flat
