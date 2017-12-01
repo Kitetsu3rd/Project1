@@ -24,6 +24,11 @@
 #' ggplot(oneDsample(f = betaPDF, N=5000, lb=0, ub=1), aes(x)) + geom_density()
 
 oneDsample <- function(f, N, lb = -Inf, ub = Inf, mean = 0) {
+  bdtest <- runif(1000000,-50,50)
+  if (f(-50) == 0 & f(50) == 0){
+    lb = min(bdtest[which(f(bdtest)>0)])
+    ub = max(bdtest[which(f(bdtest)>0)])
+  }
   if (abs(integrate(f, lb, ub)$val - 1) > 0.001) {
     stop("Error: Bound is missing/wrong or the function is not a pdf. The area under the function you given should be 1")
   }
@@ -43,11 +48,12 @@ oneDsample <- function(f, N, lb = -Inf, ub = Inf, mean = 0) {
       return(data.frame(x=ones))
     }
     else {
-      x <- runif(200000,-5000,5000)
-      maxf <- max(f(x))
-      mu=x[which(f(x)==maxf)]
-      sd = 2/maxf
-      C = maxf/dnorm(mu,mu,sd)
+      max <- optimize(f,c(-5000,5000),maximum = TRUE)
+      maxf <- max$objective          #get the maximum of the given pdf
+      mu=max$maximum                 #set the x as the mean of normal distribution where we get the maximum
+      sd = 2/maxf                    #based on the pdf of normal distribution, we have standard deviation = 1/sqrt(2*pi)/maxf,
+                                     #but we make it a little bit larger because the given pdf might be flat
+      C = maxf/dnorm(mu,mu,sd)       #The value we balance the normal distribution science we increase the sd.
       ones = c()
       n = 0
       while (n < N) {
@@ -63,10 +69,4 @@ oneDsample <- function(f, N, lb = -Inf, ub = Inf, mean = 0) {
 }
 
 
-f<- function(x) dnorm(x,-100,10000)
-f<- function(x) 1/pi/(1+x^2)
-f<- function(x){ifelse(0 < x & x < 1, 3*x^3, 0)}
-f<- function(x) {ifelse(0<=x, dlnorm(x,mean=0,sdlog=1),0)}
-a<-oneDsample(f,10000)
 
-oneDsampleplot(a)
