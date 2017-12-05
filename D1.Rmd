@@ -1,0 +1,22 @@
+---
+title: "D1"
+author: "Kuncheng Fan"
+date: "12/1/2017"
+output: html_document
+---
+
+```{r}
+x <- rpois(8,50)
+
+#Markov
+mean(x) * 9
+
+#Chebychev
+mean(x) + 3 * sqrt(mean(x^2) - (mean(x))^2)
+
+my_fun <- function(t) {1/t*log(9/8 * sum(exp(t*x)))}
+optim(par = 1, fn = my_fun, lower = 1, upper = 100, method = "Brent")
+my_fun(1)
+optim(par = 1, fn = my_fun, lower = .1, upper = 15, method = "Brent")
+```
+

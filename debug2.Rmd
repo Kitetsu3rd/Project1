@@ -18,72 +18,56 @@ f <- function(x){
   dnorm(x1,0,1) * dnorm(x2, 2, 3)
 }
 
-j2 <- function(x){
+f <- function(x){
   x1 = x[1]
   x2 = x[2]
   1/pi/(1+x1^2) * 0.05*exp(-0.05*x2)
 }
+
+f <- function(x){
+  x1 = x[1]
+  x2 = x[2]
+  1/pi/(1+x1^2) * dt(x2,1)
+}
+ggplot(twoDsample(f, N=5000), aes(x, y)) +  geom_density_2d()
+ggplot(twoDsample(f, N=5000,lby = 0,lbx=0,ubx=1,uby=1), aes(x, y)) +  geom_density_2d()
 ```
 
 ```{r}
-ggplot(twoDsample(f, N=5000), aes(x, y)) +  geom_density_2d()
+ggplot(twoDsample(j2, N=5000,lby = 0), aes(x, y)) +  geom_density_2d()
 
 mmmv = mvrnorm(100,c(0,0),matrix(c(1,0,0,1),2,2))
 mv = data.frame(x = mmmv[,1], y = mmmv[,2])
 ggplot(mv, aes(x,y)) +  geom_density_2d()
-optim(c(0.3,0.2),j1, control = list(fnscale = -1))
+optim(c(0.1,0.1),jointPFF, control = list(fnscale = -1))
 nlm(jointPFF,c(0,9))
-adaptIntegrate(j2, c(-1000,0), c(1000,1000))
+adaptIntegrate(f, c(-5000,-5000), c(5000,5000), maxEval = 100000)
 ```
 
 ```{r}
-twoDsample <- function(f, N, lbx, ubx, lby, uby) {
+twoDsample <- function(f, N, lbx=-5000, ubx=5000, lby=-5000, uby=5000) {
   library(cubature)
-  if (missing(lbx)){
-    lbx = -5000
+  library(MASS)
+  if (abs(adaptIntegrate(f, c(lbx, lby), c(ubx, uby), maxEval=100000)$integral - 1) > 0.001) {
+    stop("Error: Bound is missing/wrong or the function is not a pdf. The area under the function you given should be 1")
   }
-  if (missing(lby)){
-    lby = -5000
-  }
-  if (missing(ubx)){
-    ubx = 5000
-  }
-  if (missing(uby)){
-    uby = 5000
-  }
-  #if (abs(adaptIntegrate(f, c(lbx, lby), c(ubx, uby), maxEval=10000)$integral - 1) > 0.001) {
-    #stop("Error: Bound is missing/wrong or the function is not a pdf. The area under the function you given should be 1")
-  #}
-  #else{
-  #    op = optim(c((ubx+lbx)/2,(uby+lby)/2),f, control = list(fnscale = -1))
-  #    twos = c()
-   #   n = 0
-    #  while (n < N) {
-     #   two <- c(runif(1,lbx,ubx),runif(1,lby,uby))
-      #  if (runif(1, 0, maxf) < f(two)){
-       #   twos = c(twos, two)
-        #  n = n + 1
-        #}
-      #}
-    #return(data.frame(x=twos[c(seq(1,length(twos)-1,2))],y=twos[c(seq(2,length(twos),2))]))
-  #}
-  #else{
-      op = optim(c((ubx+lbx)/2,(uby+lby)/2), f, control = list(fnscale = -1))
-      maxf = op$value
-      mu = c(op$par)
-      sd = 2/maxf
-      C = maxf/dmvnorm(c(mu[1],mu[2]),c(mu[1],mu[2]),c(sd,sd))
-      twos = c()
-      n = 0
-      while (n < N) {
-        two = mvrnorm(1, mu, matrix(c(sd,0,0,sd),2,2))
-        if (runif(1, 0, C * dmvnorm(two,mu,c(sd,sd))) < f(two)){
-          twos = c(twos, two)
-          n = n + 1
-        }
+  else{
+    op = optim(c((ubx+lbx)/2,(uby+lby)/2), f, control = list(fnscale = -1))
+    maxf = op$value
+    mu = c(op$par)
+    sd = 2/maxf
+    C = maxf/dmvnorm(c(mu[1],mu[2]),c(mu[1],mu[2]),c(sd,sd))
+    twos = c()
+    n = 0
+    while (n < N) {
+      two = mvrnorm(1, mu, matrix(c(sd,0,0,sd),2,2))
+      if (runif(1, 0, C * dmvnorm(two,mu,c(sd,sd))) < f(two)){
+        twos = c(twos, two)
+        n = n + 1
       }
-      return(data.frame(x=twos[c(seq(1,length(twos)-1,2))],y=twos[c(seq(2,length(twos),2))]))
-  #}
+    }
+  return(data.frame(x=twos[c(seq(1,length(twos)-1,2))],y=twos[c(seq(2,length(twos),2))]))
+  }
 }
 ```
 
@@ -170,5 +154,9 @@ dmvnorm = function(x,mu,sig){
   sig2 = sig[2]
   exp(-1/2*((x1-mu1)^2/sig1^2 - 2*(x1-mu1)*(x2-mu2)/sig1/sig2 + (x2-mu2)^2/sig2^2))/(2*pi*sig1*sig2)
 }
+```
+
+```{r}
+optim(c(-2,3), j2, control = list(fnscale = -1))
 ```
 

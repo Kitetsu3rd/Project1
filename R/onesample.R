@@ -29,6 +29,12 @@ oneDsample <- function(f, N, lb = -Inf, ub = Inf, mean = 0) {
     lb = min(bdtest[which(f(bdtest)>0)])
     ub = max(bdtest[which(f(bdtest)>0)])
   }
+  if (f(-50) == 0 & f(50) > 0 & mean(f(bdtest)) > 0){
+    lb = min(bdtest[which(f(bdtest)>0)])
+  }
+  if (f(-50) > 0 & f(50) == 0 & mean(f(bdtest)) > 0){
+    ub = max(bdtest[which(f(bdtest)>0)])
+  }
   if (abs(integrate(f, lb, ub)$val - 1) > 0.001) {
     stop("Error: Bound is missing/wrong or the function is not a pdf. The area under the function you given should be 1")
   }
@@ -53,16 +59,25 @@ oneDsample <- function(f, N, lb = -Inf, ub = Inf, mean = 0) {
       if (maxf == 0){
         stop("Error: Bound is missing/wrong")
       }
-      mu=max$maximum                 #set the x as the mean of normal distribution where we get the maximum
-      sd = 2/maxf                    #based on the pdf of normal distribution, we have standard deviation = 1/sqrt(2*pi)/maxf,
-                                     #but we make it a little bit larger because the given pdf might be flat
-      C = maxf/dnorm(mu,mu,sd)       #The value we balance the normal distribution science we increase the sd.
+      df = 10
+      if (maxf >= 0.32){
+
+        C = maxf/dt(0,1,0)
+      }
+      else{
+        while (dt(0,df,0) > maxf & df > 1) {
+          df = df/1.1
+        }
+        C = maxf/dt(0,df,0)
+      }
+      mu=max$maximum
       ones = c()
       n = 0
       while (n < N) {
-        one = rnorm(1, mu, sd)
-        if (runif(1, 0, C * dnorm(one,mu,sd)) < f(one)){
-          ones = c(ones, one)
+        one1 = rt(1, df, 0)
+        one2 = one1 + mu
+        if (runif(1, 0, C * dt(one1,df,0)) < f(one2)){
+          ones = c(ones, one2)
           n = n + 1
         }
       }

@@ -6,6 +6,18 @@ output: html_document
 ---
 1.
 ```{r}
+library(ggplot2)
+library(cubature)
+```
+
+```{r}
+f = function(x) {dt(x,1,0)}
+w = rt(10000,1,0)
+ggplot(w,aes(x)) + geom_density() + stat_function(fun = f, color = "red")
+```
+
+
+```{r}
 betaPDF <- function(x) {
  ifelse(0 < x & x < 1, 4*x^3, 0)}
 bpi = function(x){
@@ -16,6 +28,18 @@ w<-data.frame(oneDsample)
 ggplot(w,aes(x)) + geom_density() + stat_function(fun = f, color = "red")
 }
 ```
+
+```{r}
+bdtest <- runif(200000,-50,50)
+lb = min(bdtest[which(f(bdtest)>0)])
+ub = max(bdtest[which(f(bdtest)>0)])
+```
+
+
+```{r}
+optimize(betaPDF,c(-1,10),maximum = TRUE)
+```
+
 
 ```{r}
 oneDsample <- function(f, N, lb = -Inf, ub = Inf, mean = 0) {
@@ -59,16 +83,18 @@ oneDsample <- function(f, N, lb = -Inf, ub = Inf, mean = 0) {
 ```
 
 ```{r}
+f<- function(x) {dt(x,1)}
+f<- function(x) {dunif(x,-100,100)}
 f<- function(x) {ifelse(x>0, 0.0005*exp(-0.0005*x),0)}
 f<- function(x){ifelse(9998 < x & x < 10000, 2/39996*x, 0)}
 f<- function(x){ifelse(0 < x & x < 4, 2/16*x, 0)}
-f<- function(x) dnorm(x,-5000,10000)
+f<- function(x) dnorm(x,-1000,10000)
 f<- function(x) 1/pi/(1+x^2)
 f<- function(x){ifelse(0 < x & x < 1, 4*x^3, 0)}
 f<- function(x) {ifelse(0<=x, dlnorm(x,mean=0,sdlog=1),0)}
-integrate(f,9998,Inf)
+integrate(f,-Inf,Inf)
 a<-oneDsample(f,20000)
-a<-oneDsample(f,20000,9998,10000)
+a<-oneDsample(f,20000,-100,100)
 
 optimize(f,c(-5000,5000),maximum = TRUE)
 optim(jointPFF)
@@ -81,7 +107,6 @@ fr <- function(x) {   ## Rosenbrock Banana function
     100 * (x2 - x1 * x1)^2 + (1 - x1)^2
 }
 (c(-1.2,1), fr)
-
 ```
 
 2.
@@ -103,7 +128,7 @@ j2 <- function(x){
   1/pi/(1+x1^2) * 0.05*exp(-0.05*x2)
 }
 
-ggplot(twoDsample(j2, N=5000, lbx=-1000,ubx=1000,lby=0,uby=1000), aes(x, y)) +  geom_density_2d()
+ggplot(twoDsample(f, N=5000), aes(x, y)) +  geom_density_2d()
 
 mmmv = mvrnorm(100,c(0,0),matrix(c(1,0,0,1),2,2))
 mv = data.frame(x = mmmv[,1], y = mmmv[,2])
@@ -117,16 +142,16 @@ adaptIntegrate(j2, c(-1000,0), c(1000,1000))
 twoDsample <- function(f, N, lbx, ubx, lby, uby) {
   library(cubature)
   if (missing(lbx)){
-    lbx = -1000
+    lbx = -5000
   }
   if (missing(lby)){
-    lby = 0
+    lby = -5000
   }
   if (missing(ubx)){
-    ubx = 1000
+    ubx = 5000
   }
   if (missing(uby)){
-    uby = 1000
+    uby = 5000
   }
   #if (abs(adaptIntegrate(f, c(lbx, lby), c(ubx, uby), maxEval=10000)$integral - 1) > 0.001) {
     #stop("Error: Bound is missing/wrong or the function is not a pdf. The area under the function you given should be 1")
@@ -247,5 +272,38 @@ dmvnorm = function(x,mu,sig){
   sig2 = sig[2]
   exp(-1/2*((x1-mu1)^2/sig1^2 - 2*(x1-mu1)*(x2-mu2)/sig1/sig2 + (x2-mu2)^2/sig2^2))/(2*pi*sig1*sig2)
 }
+```
+
+```{r}
+f <- function(x){
+  x1 = x[1]
+  x2 = x[2]
+  ifelse(0<x1 & x1 <1 & 0<x2 & x2<1 & 0<x1+x2 & x1+x2<1, 24*x1*x2, 0)}
+
+if (f(c(-50,-50)) == 0 & f(c(50,50)) == 0){
+    flag = 0
+    lbx = -50
+    lby = -50
+    ubx = 50
+    uby = 50
+    while (flag == 0){
+      min = optim(c((ubx+lbx)/2,(uby+lby)/2), f)
+      if (min$value == 0){
+        lbx = lbx/2
+        lby = lby/2
+        ubx = ubx/2
+        uby = uby/2
+      }
+      if (min$value > 0){
+        lbx = lbx*1.1
+        lby = lby*1.1
+        ubx = ubx*1.1
+        uby = uby*1.1
+      }
+      if (f(c(lbx-0.01,lby-0.01)) == 0 & f(c(lbx,lby)) > 0 & f(c(ubx+0.01,uby+0.01)) == 0 & f(c(ubx,uby)) > 0){
+        flag = 1
+      }
+    }
+  }
 ```
 

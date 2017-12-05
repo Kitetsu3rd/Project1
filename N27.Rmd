@@ -1,0 +1,16 @@
+---
+title: "N27"
+author: "Kuncheng Fan"
+date: "11/27/2017"
+output: html_document
+---
+
+```{r}
+n = 1
+mu =1/2
+sigma = sqrt(1/12)
+xvals = seq(-3,3,.01)
+yvals = pnorm(xvals)
+clt_data = replicate()
+```
+
